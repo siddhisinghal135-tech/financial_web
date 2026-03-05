@@ -1,0 +1,250 @@
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.tab{display:none;}
+.subtab{display:none;}
+
+button{
+border:hidden;
+background-color:lightblue;}
+button:hover{background-color:darkblue;
+color:white;}
+p{
+position:absolute;
+top:200px;
+left:30px;
+}
+th{background:white;}
+#pststmnt{position:absolute;
+top:150px;
+left:30px;
+}
+#open{position:absolute;
+top:300px;
+left:30px;
+}
+#high{position:absolute;
+top:400px;
+left:30px;
+}
+#can{position:absolute;
+top:200px;
+right:10px;
+height:600px;
+width:600px;
+}
+.pos{
+position:absolute;
+top:280px;
+left:30px;
+}
+#roe_s{position:absolute;
+top:300px;
+left:30px;
+}
+#roe{position:absolute;
+top:100px;
+left:30px;
+}
+#low{position:absolute;
+top:500px;
+left:30px;
+}
+#ch{position:absolute;
+top:500px;
+left:300px;
+}
+#Statement{position:absolute;
+top:420px;
+left:30px;
+}
+body {
+    background: radial-gradient(darkgrey ,lightgrey);
+    margin: 0;
+}
+#upside{position:absolute;
+top:380px;
+left:30px;
+}
+#ust{position:absolute;
+top:400px;
+left:30px;
+}
+#btn1{
+position:absolute;
+top:15px;
+left:20px;
+height:50px;
+width:400px;}
+#btn2{
+position:absolute;
+top:15px;
+left:420px;
+height:50px;
+width:400px;}
+#btn3{
+position:absolute;
+top:15px;
+left:820px;
+height:50px;
+width:400px;}
+#btn4{
+position:absolute;
+top:80px;
+left:20px;
+height:50px;
+width:400px;}
+#btn5{
+position:absolute;
+top:80px;
+left:420px;
+height:50px;
+width:400px;}
+#btn6{
+position:absolute;
+top:80px;
+left:820px;
+height:50px;
+width:400px;}
+#btn7{
+position:absolute;
+top:80px;
+left:20px;
+height:50px;
+width:600px;}
+#btn8{
+position:absolute;
+top:80px;
+left:620px;
+height:50px;
+width:600px;}
+</style>
+</head>
+<body >
+<nav>
+	<button onclick="ShowTab('pst')" id="btn1">Past Analysis</button>
+	<button onclick="ShowTab('grwth')" id="btn2">Growth</button>
+	<button onclick="ShowTab('live')" id="btn3">Live and Future share price</button>
+</nav>
+
+<div id="pst" class="tab">
+	<nav>
+ 		<button onclick="ShowSubTab('bs')" id="btn4">Balance Sheet</button>
+ 		<button onclick="ShowSubTab('pnl')" id="btn5">Profit And Loss</button>
+ 		<button onclick="ShowSubTab('cf')" id="btn6">Cash Flow</button>
+	</nav>	
+
+	<div id="bs" class="subtab">
+		<p id="bs_table" class="pos"></p>
+	</div>
+ 	<div id="pnl" class="subtab">
+		<p id="pnl_table" class="pos"></p>
+	</div>
+ 	<div id="cf" class="subtab">
+		<p id="cf_table" class="pos"></p>
+	</div>
+<p id="pststmnt"> </p>
+	
+</div>
+<div id="grwth" class="tab">
+	<p id="roe">Roe is:- </p>
+	<p id="roe_s">Conclusion:- </p>
+	<div id="can"><canvas id="roeChart"></canvas></div>
+</div>
+
+<div id="live" class="tab">
+	<nav>
+ 		<button onclick="ShowSubTab('lprice')" id="btn7">Live Price</button>
+ 		<button onclick="ShowSubTab('future')" id="btn8">Future prediction</button>
+ 	</nav>
+	<div id="lprice" class="subtab">
+		<p id="cur_price"></p>
+		<p id="open"></p>
+		<p id="high"></p>
+		<p id="low"></p>
+		<p id="ch"></p>
+	</div>
+ 	<div id="future" class="subtab">
+		<p id="fs"></p>
+		<p id="upside"></p>
+		<p id="ust"></p>
+		<p id="Statement"></p>
+	</div>
+</div>
+<script>
+	function ShowTab(tabId){
+    		document.querySelectorAll(".tab").forEach(tab=>{
+			tab.style.display="none"; });
+   		document.getElementById(tabId).style.display="block";
+	}
+	function ShowSubTab(tabid){
+		document.querySelectorAll(".subtab").forEach(subtab=>{
+		subtab.style.display="none";});
+		document.getElementById(tabid).style.display="block";
+		}
+
+		function createTable(eleid,column,value){
+			let table="<table border='1' cellspacing=0>";
+			table+="<tr>";
+			column.forEach(col => {
+       			table += `<th>${col}</th>`;});
+    			table += "</tr>";
+			value.forEach(row => {
+        		table += "<tr>";
+        		row.forEach(cell => {
+            		table += `<td>${cell}</td>`; });
+			table += "</tr>";});
+			table+="</table>";
+			document.getElementById(eleid).innerHTML=table;}		
+
+	window.onload=function(){
+	 	ShowTab("pst");
+		
+		fetch("/analysis")
+		.then(response=> response.json())
+		.then(data=>{
+			createTable("pnl_table", data.pnl_columns, data.pnl_data);
+			createTable("bs_table", data.bs_columns, data.bs_data);
+			createTable("cf_table", data.cf_columns, data.cf_data);
+			document.getElementById("pststmnt").innerText="Past Statement "+data.pststatement;
+			document.getElementById("roe").innerText="Roe "+data.roe;
+			if (data.ROE > 15){
+			document.getElementById("roe_s").innerText="Conclusion:- "+data.roe_statement;
+			document.getElementById("roe_s").style.color="green";}
+			else{
+			document.getElementById("roe_s").innerText="Conclusion:- "+data.roe_statement;
+			document.getElementById("roe_s").style.color="red";}
+			document.getElementById("cur_price").innerText="Current Price "+data.cp;
+			document.getElementById("open").innerText="Open Price "+data.op;
+			document.getElementById("high").innerText="High Price "+data.high;
+			document.getElementById("low").innerText="Low Price "+data.low;
+			document.getElementById("ch").innerText="Change in percentage "+data.ch;
+			document.getElementById("fs").innerText=data.Future_statement;
+			document.getElementById("upside").innerText="Upside "+data.upside;
+			document.getElementById("ust").innerText="What upside actually is? "+data.ust;
+			if (data.upside >60){ document.getElementById("Statement").style.color=" brown";
+						document.getElementById("Statement").innerText="Statement "+data.Statement;}
+			else if(data.upside >25) {document.getElementById("Statement").style.color= "green";
+						document.getElementById("Statement").innerText="Statement "+data.Statement;}
+			else if(data.upside >10){ document.getElementById("Statement").style.color= "blue";
+						document.getElementById("Statement").innerText="Statement "+data.Statement;}
+			else {document.getElementById("Statement").style.color= "red";
+				document.getElementById("Statement").innerText="Statement "+data.Statement;}
+			
+			
+			new Chart(document.getElementById("roeChart"), {
+        				type: 'bar',
+        				data: {
+           					 labels: data.years,
+           					 datasets: [{
+               					 label: "ROE (%)",
+               					 data: data.roe_value,
+               					 borderWidth: 2
+           					 }]
+       						 }
+   							 });});}
+			
+</script>
+</body>
+</html>
